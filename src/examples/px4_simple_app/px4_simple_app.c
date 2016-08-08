@@ -56,6 +56,14 @@ int px4_simple_app_main(int argc, char *argv[])
 {
 	PX4_INFO("Hello Sky!");
 
+	volatile unsigned char power_touche;
+	while(1){
+		power_touche = px4_arch_gpioread(GPIO_Power_Touch);
+		if(0==power_touche){
+			px4_arch_gpiowrite(GPIO_Power_On, 0);//Power off
+		}
+	}
+
 	/* subscribe to sensor_combined topic */
 	int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
 	orb_set_interval(sensor_sub_fd, 1000);

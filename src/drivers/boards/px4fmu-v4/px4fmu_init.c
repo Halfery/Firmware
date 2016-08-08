@@ -73,6 +73,13 @@
 #include <systemlib/perf_counter.h>
 #include <systemlib/err.h>
 
+/********************************************
+ * added by Lei.Yu
+ ********************************************/
+#include <stm32_exti.h>
+
+//end
+
 /****************************************************************************
  * Pre-Processor Definitions
  ****************************************************************************/
@@ -161,7 +168,23 @@ stm32_boardinitialize(void)
 
 	/* configure LEDs */
 	up_ledinit();
+
+	px4_arch_configgpio(GPIO_BTN_SAFETY);
+	//PX4_INFO("drive pin on");
+	//px4_arch_gpiowrite(GPIO_BTN_SAFETY, 1);
 }
+
+/********************************************
+ * added by Lei.Yu
+ * this protected func is Power Off isr
+ ********************************************/
+static int PowerOff_isr(int irq, void *context);
+
+static int PowerOff_isr(int irq, void *context){
+	px4_arch_gpiowrite(GPIO_Power_On, 0);
+	return 0;
+}
+//end
 
 /****************************************************************************
  * Name: nsh_archinitialize
@@ -194,8 +217,17 @@ __EXPORT int nsh_archinitialize(void)
 	px4_arch_configgpio(GPIO_8266_GPIO0);
 	px4_arch_configgpio(GPIO_SPEKTRUM_PWR_EN);
 	px4_arch_configgpio(GPIO_8266_PD);
+	px4_arch_gpiowrite(GPIO_8266_PD, 1);
 	px4_arch_configgpio(GPIO_8266_RST);
-	px4_arch_configgpio(GPIO_BTN_SAFETY);
+	/* added by Lei.Yu*/
+	px4_arch_configgpio(GPIO_Power_On);
+	px4_arch_configgpio(GPIO_Power_Touch);
+	px4_arch_configgpio(GPIO_wifi_rst);
+	px4_arch_gpiowrite(GPIO_wifi_rst, 1);
+	px4_arch_configgpio(GPIO_wifi_nlink);
+	px4_arch_configgpio(GPIO_wifi_nready);
+	px4_arch_gpiowrite(GPIO_Power_On, 1);
+	//px4_arch_configgpio(GPIO_Voltage_Sense);
 
 #ifdef GPIO_RC_OUT
 	px4_arch_configgpio(GPIO_RC_OUT);      /* Serial RC output pin */
@@ -287,6 +319,13 @@ __EXPORT int nsh_archinitialize(void)
 	SPI_SELECT(spi2, SPIDEV_FLASH, false);
 	SPI_SELECT(spi2, PX4_SPIDEV_BARO, false);
 
+	/********************************************
+	 * added by Lei.Yu
+	 * register Power Off isr
+	 ********************************************/
+	stm32_gpiosetevent(GPIO_Power_Touch,false,true,true,PowerOff_isr);
+
+	//end
 #ifdef CONFIG_MMCSD
 	/* First, get an instance of the SDIO interface */
 

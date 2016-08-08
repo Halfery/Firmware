@@ -15,29 +15,29 @@ set(config_module_list
 	drivers/led
 	drivers/px4fmu
 	drivers/boards/px4fmu-v4
-	drivers/rgbled
-	drivers/mpu6000
+	#drivers/rgbled
+	#drivers/mpu6000
 	drivers/mpu9250
-	drivers/hmc5883
-	drivers/ms5611
-	drivers/mb12xx
-	drivers/srf02
-	drivers/sf0x
-	drivers/sf10a
-	drivers/ll40ls
-	drivers/trone
+	#drivers/hmc5883
+	#drivers/ms5611
+	#drivers/mb12xx
+	#drivers/srf02
+	#drivers/sf0x
+	#drivers/sf10a
+	#drivers/ll40ls
+	#drivers/trone
 	drivers/gps
-	drivers/pwm_out_sim
-	drivers/hott
-	drivers/hott/hott_telemetry
-	drivers/hott/hott_sensors
-	drivers/blinkm
-	drivers/airspeed
-	drivers/ets_airspeed
-	drivers/meas_airspeed
-	drivers/frsky_telemetry
-	modules/sensors
-	drivers/mkblctrl
+	#drivers/pwm_out_sim
+	#drivers/hott
+	#drivers/hott/hott_telemetry
+	#drivers/hott/hott_sensors
+	#drivers/blinkm
+	#drivers/airspeed
+	#drivers/ets_airspeed
+	#drivers/meas_airspeed
+	#drivers/frsky_telemetry
+	#modules/sensors
+	#drivers/mkblctrl
 	drivers/px4flow
 	drivers/oreoled
 	drivers/gimbal
@@ -61,7 +61,7 @@ set(config_module_list
 	systemcmds/pwm
 	systemcmds/esc_calib
 	systemcmds/reboot
-	systemcmds/topic_listener
+	#systemcmds/topic_listener
 	systemcmds/top
 	systemcmds/config
 	systemcmds/nshterm
@@ -77,8 +77,8 @@ set(config_module_list
 	#
 	modules/commander
 	modules/load_mon
-	modules/navigator
-	modules/mavlink
+	#modules/navigator
+	#modules/mavlink
 	modules/gpio_led
 	modules/uavcan
 	modules/land_detector
@@ -86,27 +86,27 @@ set(config_module_list
 	#
 	# Estimation modules (EKF/ SO3 / other filters)
 	#
-	modules/attitude_estimator_q
-	modules/ekf_att_pos_estimator
-	modules/position_estimator_inav
-	modules/ekf2
-	modules/local_position_estimator
+	#modules/attitude_estimator_q
+	#modules/ekf_att_pos_estimator
+	#modules/position_estimator_inav
+	#modules/ekf2
+	#modules/local_position_estimator
 
 	#
 	# Vehicle Control
 	#
 	# modules/segway # XXX Needs GCC 4.7 fix
-	modules/fw_pos_control_l1
-	modules/fw_att_control
-	modules/mc_att_control
-	modules/mc_pos_control
-	modules/vtol_att_control
+	#modules/fw_pos_control_l1
+	#modules/fw_att_control
+	#modules/mc_att_control
+	#modules/mc_pos_control
+	#modules/vtol_att_control
 
 	#
 	# Logging
 	#
-	modules/sdlog2
-	modules/logger
+	#modules/sdlog2
+	#modules/logger
 
 	#
 	# Library modules
@@ -148,7 +148,7 @@ set(config_module_list
 	#
 	# Rover apps
 	#
-	examples/rover_steering_control
+	#examples/rover_steering_control
 
 	#
 	# Demo apps
@@ -157,6 +157,9 @@ set(config_module_list
 	# Tutorial code from
 	# https://px4.io/dev/px4_simple_app
 	examples/px4_simple_app
+	examples/bv
+	examples/bv_again
+	examples/my_app
 
 	# Tutorial code from
 	# https://px4.io/dev/daemon

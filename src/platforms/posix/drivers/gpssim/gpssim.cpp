@@ -538,7 +538,7 @@ usage(const char *reason)
 
 	PX4_INFO("usage:");
 	PX4_INFO("gpssim {start|stop|test|reset|status}");
-	PX4_INFO("       [-d /dev/ttyS0-n][-f (for enabling fake)][-s (to enable sat info)]");
+	//PX4_INFO("       [-d /dev/ttyS0-n][-f (for enabling fake)][-s (to enable sat info)]"); //noted off by Lei.Yu
 }
 
 } // namespace
