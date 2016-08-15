@@ -45,19 +45,252 @@
 #include <stdio.h>
 #include <poll.h>
 #include <string.h>
+#include <drivers/drv_hrt.h>
 
 #include <uORB/uORB.h>
 #include <uORB/topics/sensor_combined.h>
 #include <uORB/topics/vehicle_attitude.h>
 #include <uORB/topics/vehicle_gps_position.h>
 
+extern volatile uint32_t g_system_timer;
+extern volatile uint32_t g_tickbias;
+
+uint64_t utc_usec = 1475307183000000;//1470972573119610;
+
+typedef struct {
+	uint32_t year;
+	uint8_t	month;
+	uint16_t day;
+	uint8_t hr;
+	uint8_t min;
+	uint8_t sec;
+	uint16_t msec;
+	uint16_t usec;
+} date;
+
 __EXPORT int tgps_main(int argc, char *argv[]);
 
 int tgps_main(int argc, char *argv[])
 {
 	PX4_INFO("Hello Sky!");
-
-
+	hrt_abstime now_t;
+	uint8_t tmpmonth;
+	uint64_t time_diff;
+	date utc_date;
+	utc_date.usec = utc_usec % 1000;
+	utc_usec = utc_usec / 1000;
+	utc_date.msec = utc_usec % 1000;
+	utc_usec = utc_usec / 1000;
+	utc_date.sec = utc_usec % 60;
+	utc_usec = utc_usec / 60;
+	utc_date.min = utc_usec % 60;
+	utc_usec = utc_usec / 60;
+	utc_date.hr = utc_usec % 24;
+	utc_usec = utc_usec / 24;
+	utc_date.day = utc_usec % 365;
+	printf("utc_date.day is %d\n", utc_date.day);
+	utc_usec = utc_usec / 365;
+	utc_date.month = 0;
+	//utc_sec = utc_usec / 12;
+	utc_date.year = utc_usec + 1970;
+	if ((utc_date.year % 4) == 0){
+		utc_date.day = utc_date.day - (utc_date.year - 1972)/4 + 1;
+		//printf("utc_date.day is %d\n", utc_date.day);
+		tmpmonth = utc_date.day/31;
+		switch(tmpmonth){
+			case 0:
+				utc_date.month = 1;
+				break;
+			case 1:
+				if ((utc_date.day % 31) == 0){
+					utc_date.month = 1;
+					break;
+				}
+				utc_date.month = 2;
+				utc_date.day = utc_date.day - 31;
+				if (utc_date.day > 29) {
+					utc_date.month = 3;
+					utc_date.day = utc_date.day - 29;
+				}
+				break;
+			case 2:
+				utc_date.month = 3;
+				utc_date.day = utc_date.day - 31 - 29;
+				if (utc_date.day > 31) {
+					utc_date.month = 4;
+					utc_date.day = utc_date.day - 31;
+				}
+				break;
+			case 3:
+				utc_date.month = 4;
+				utc_date.day = utc_date.day - 31 * 2 - 29;
+				if (utc_date.day > 30) {
+					utc_date.month = 5;
+					utc_date.day = utc_date.day - 30;
+				}
+				break;
+			case 4:
+				utc_date.month = 5;
+				utc_date.day = utc_date.day - 31 * 2 - 29 -30;
+				if (utc_date.day > 31) {
+					utc_date.month = 6;
+					utc_date.day = utc_date.day - 31;
+				}
+				break;
+			case 5:
+				utc_date.month = 6;
+				utc_date.day = utc_date.day - 31 * 3 - 29 -30;
+				if (utc_date.day > 30) {
+					utc_date.month = 7;
+					utc_date.day = utc_date.day - 30;
+				}
+				break;
+			case 6:
+				utc_date.month = 7;
+				utc_date.day = utc_date.day - 31 * 3 - 29 -30 * 2;
+				if (utc_date.day > 31) {
+					utc_date.month = 8;
+					utc_date.day = utc_date.day - 31;
+				}
+				break;
+			case 7:
+				utc_date.month = 8;
+				utc_date.day = utc_date.day - 31 * 4 - 29 -30 * 2;
+				if (utc_date.day > 31) {
+					utc_date.month = 9;
+					utc_date.day = utc_date.day - 31;
+				}
+				break;
+			case 8:
+				utc_date.month = 9;
+				utc_date.day = utc_date.day - 31 * 5 - 29 -30 * 2;
+				if (utc_date.day > 30) {
+					utc_date.month = 10;
+					utc_date.day = utc_date.day - 30;
+				}
+				break;
+			case 9:
+				utc_date.month = 10;
+				utc_date.day = utc_date.day - 31 * 5 - 29 -30 * 3;
+				if (utc_date.day > 31) {
+					utc_date.month = 11;
+					utc_date.day = utc_date.day - 31;
+				}
+				break;
+			case 10:
+				utc_date.month = 11;
+				utc_date.day = utc_date.day - 31 * 6 - 29 -30 * 3;
+				if (utc_date.day > 30) {
+					utc_date.month = 12;
+					utc_date.day = utc_date.day - 30;
+				}
+				break;
+			case 11:
+				utc_date.month = 12;
+				utc_date.day = utc_date.day - 31 * 6 - 29 -30 * 4;
+				break;
+		}
+	}
+	else{
+		utc_date.day = utc_date.day - (utc_date.year - 1972)/4;
+		tmpmonth = utc_date.day/31;
+		switch(tmpmonth){
+			case 0:
+				utc_date.month = 1;
+				break;
+			case 1:
+				if ((utc_date.day % 31) == 0){
+					utc_date.month = 1;
+					break;
+				}
+				utc_date.month = 2;
+				utc_date.day = utc_date.day - 31;
+				if (utc_date.day > 28) {
+					utc_date.month = 3;
+					utc_date.day = utc_date.day - 28;
+				}
+				break;
+			case 2:
+				utc_date.month = 3;
+				utc_date.day = utc_date.day - 31 - 28;
+				if (utc_date.day > 31) {
+					utc_date.month = 4;
+					utc_date.day = utc_date.day - 31;
+				}
+				break;
+			case 3:
+				utc_date.month = 4;
+				utc_date.day = utc_date.day - 31 * 2 - 28;
+				if (utc_date.day > 30) {
+					utc_date.month = 5;
+					utc_date.day = utc_date.day - 30;
+				}
+				break;
+			case 4:
+				utc_date.month = 5;
+				utc_date.day = utc_date.day - 31 * 2 - 28 -30;
+				if (utc_date.day > 31) {
+					utc_date.month = 6;
+					utc_date.day = utc_date.day - 31;
+				}
+				break;
+			case 5:
+				utc_date.month = 6;
+				utc_date.day = utc_date.day - 31 * 3 - 28 -30;
+				if (utc_date.day > 30) {
+					utc_date.month = 7;
+					utc_date.day = utc_date.day - 30;
+				}
+				break;
+			case 6:
+				utc_date.month = 7;
+				utc_date.day = utc_date.day - 31 * 3 - 28 -30 * 2;
+				if (utc_date.day > 31) {
+					utc_date.month = 8;
+					utc_date.day = utc_date.day - 31;
+				}
+				break;
+			case 7:
+				utc_date.month = 8;
+				utc_date.day = utc_date.day - 31 * 4 - 28 -30 * 2;
+				if (utc_date.day > 31) {
+					utc_date.month = 9;
+					utc_date.day = utc_date.day - 31;
+				}
+				break;
+			case 8:
+				utc_date.month = 9;
+				utc_date.day = utc_date.day - 31 * 5 - 28 -30 * 2;
+				if (utc_date.day > 30) {
+					utc_date.month = 10;
+					utc_date.day = utc_date.day - 30;
+				}
+				break;
+			case 9:
+				utc_date.month = 10;
+				utc_date.day = utc_date.day - 31 * 5 - 28 -30 * 3;
+				if (utc_date.day > 31) {
+					utc_date.month = 11;
+					utc_date.day = utc_date.day - 31;
+				}
+				break;
+			case 10:
+				utc_date.month = 11;
+				utc_date.day = utc_date.day - 31 * 6 - 28 -30 * 3;
+				if (utc_date.day > 30) {
+					utc_date.month = 12;
+					utc_date.day = utc_date.day - 30;
+				}
+				break;
+			case 11:
+				utc_date.month = 12;
+				utc_date.day = utc_date.day - 31 * 6 - 28 -30 * 4;
+				break;
+		}
+	}
+	
+	printf("year = %d, month = %d, day = %d, hr = %d\n, min = %d, sec = %d, msec = %d, usec = %d\n", utc_date.year, utc_date.month, utc_date.day, \
+		utc_date.hr, utc_date.min, utc_date.sec, utc_date.msec, utc_date.usec);
 
 	/* subscribe to sensor_combined topic */
 	//int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
@@ -108,10 +341,16 @@ int tgps_main(int argc, char *argv[])
 				memset(&raw, 0, sizeof(raw));
 				/* copy sensors raw data into local buffer */
 				orb_copy(ORB_ID(vehicle_gps_position), vehicle_gps_fd, &raw);
+				now_t = hrt_absolute_time();
+				printf("[tgps] now time is:\t%"PRIu64"\n", now_t);
+				printf("[tgps] g_system_timer is:\t%d\n", g_system_timer);
+				printf("[tgps] g_tickbias is:\t%d\n", g_tickbias);
 				printf("[tgps] timestamp:\t%"PRIu64"\n", raw.timestamp);
+				time_diff = now_t - raw.timestamp;
+				printf("[tgps] time diff:\t%"PRIu64"\n", time_diff);
 				printf("[tgps] Latitude:\t%d\n", raw.lat);
 				printf("[tgps] Longitude:\t%d\n", raw.lon);
-				printf("[tgps] timestamp:\t%"PRIu64"\n", raw.time_utc_usec);
+				printf("[tgps] time_utc_usec:\t%"PRIu64"\n", raw.time_utc_usec);
 
 				/* set att and publish this information for other apps */
 				//att.roll = raw.accelerometer_m_s2[0];
