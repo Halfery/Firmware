@@ -186,6 +186,20 @@ static int PowerOff_isr(int irq, void *context){
 }
 //end
 
+/********************************************
+ * added by Lei.Yu
+ * this protected func is GPS_PPS isr
+ ********************************************/
+
+static int GPS_PPS_isr(int irq, void *context);
+
+static int GPS_PPS_isr(int irq, void *context){
+	printf("gps time coming\n");
+	return 0;
+}
+
+//end
+
 /****************************************************************************
  * Name: nsh_archinitialize
  *
@@ -227,6 +241,10 @@ __EXPORT int nsh_archinitialize(void)
 	px4_arch_configgpio(GPIO_wifi_nlink);
 	px4_arch_configgpio(GPIO_wifi_nready);
 	px4_arch_gpiowrite(GPIO_Power_On, 1);
+	px4_arch_configgpio(GPIO_GPS_EN);
+	px4_arch_gpiowrite(GPIO_GPS_EN, 1);
+	px4_arch_configgpio(GPIO_GPS_PPS);
+	//px4_arch_gpiowrite(GPIO_GPS_EN, 0);
 	//px4_arch_configgpio(GPIO_Voltage_Sense);
 
 #ifdef GPIO_RC_OUT
@@ -324,7 +342,7 @@ __EXPORT int nsh_archinitialize(void)
 	 * register Power Off isr
 	 ********************************************/
 	stm32_gpiosetevent(GPIO_Power_Touch,false,true,true,PowerOff_isr);
-
+	stm32_gpiosetevent(GPIO_GPS_PPS,true,false,true,GPS_PPS_isr);
 	//end
 #ifdef CONFIG_MMCSD
 	/* First, get an instance of the SDIO interface */

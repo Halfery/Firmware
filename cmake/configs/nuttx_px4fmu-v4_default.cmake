@@ -61,7 +61,7 @@ set(config_module_list
 	systemcmds/pwm
 	systemcmds/esc_calib
 	systemcmds/reboot
-	#systemcmds/topic_listener
+	systemcmds/topic_listener
 	systemcmds/top
 	systemcmds/config
 	systemcmds/nshterm
@@ -160,6 +160,7 @@ set(config_module_list
 	examples/bv
 	examples/bv_again
 	examples/my_app
+	examples/tgps
 
 	# Tutorial code from
 	# https://px4.io/dev/daemon
